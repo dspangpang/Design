@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/usr/local/include/opencv4",
+                "/usr/local/include/opencv4/opencv2",
+                "/usr/include/pcl-1.10",
+                "/usr/include/eigen3",
+                "/usr/include/vtk-7.1",
+                "/usr/include/openni2",
+                "/usr/local/cuda-11.0/include",
+                "/usr/local/cuda/include",
+                "/usr/include/CGAL",
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "go2sh.cmake-integration"
+        }
+    ],
+    "version": 4
+}

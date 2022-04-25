@@ -1,0 +1,5 @@
+/home/jzz/Design/build/CMakeFiles/rebuild_cache.dir
+/home/jzz/Design/build/CMakeFiles/edit_cache.dir
+/home/jzz/Design/build/bin/CMakeFiles/rebuild_cache.dir
+/home/jzz/Design/build/bin/CMakeFiles/edit_cache.dir
+/home/jzz/Design/build/bin/CMakeFiles/Design.dir
