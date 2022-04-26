@@ -12,7 +12,8 @@
                 "/usr/local/cuda-11.0/include",
                 "/usr/local/cuda/include",
                 "/usr/include/CGAL",
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/usr/local/include/opencv4"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

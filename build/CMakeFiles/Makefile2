@@ -92,12 +92,12 @@ bin/clean: bin/CMakeFiles/Design.dir/clean
 bin/CMakeFiles/Design.dir/all:
 	$(MAKE) -f bin/CMakeFiles/Design.dir/build.make bin/CMakeFiles/Design.dir/depend
 	$(MAKE) -f bin/CMakeFiles/Design.dir/build.make bin/CMakeFiles/Design.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jzz/Design/build/CMakeFiles --progress-num=1,2 "Built target Design"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jzz/Design/build/CMakeFiles --progress-num=1,2,3 "Built target Design"
 .PHONY : bin/CMakeFiles/Design.dir/all
 
 # Build rule for subdir invocation for target.
 bin/CMakeFiles/Design.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jzz/Design/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jzz/Design/build/CMakeFiles 3
 	$(MAKE) -f CMakeFiles/Makefile2 bin/CMakeFiles/Design.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jzz/Design/build/CMakeFiles 0
 .PHONY : bin/CMakeFiles/Design.dir/rule

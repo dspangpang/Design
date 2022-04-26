@@ -5,6 +5,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
   "/home/jzz/Design/src/main.cpp" "/home/jzz/Design/build/bin/CMakeFiles/Design.dir/main.cpp.o"
+  "/home/jzz/Design/src/sv.cpp" "/home/jzz/Design/build/bin/CMakeFiles/Design.dir/sv.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

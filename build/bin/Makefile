@@ -152,6 +152,33 @@ main.cpp.s:
 	cd /home/jzz/Design/build && $(MAKE) -f bin/CMakeFiles/Design.dir/build.make bin/CMakeFiles/Design.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+sv.o: sv.cpp.o
+
+.PHONY : sv.o
+
+# target to build an object file
+sv.cpp.o:
+	cd /home/jzz/Design/build && $(MAKE) -f bin/CMakeFiles/Design.dir/build.make bin/CMakeFiles/Design.dir/sv.cpp.o
+.PHONY : sv.cpp.o
+
+sv.i: sv.cpp.i
+
+.PHONY : sv.i
+
+# target to preprocess a source file
+sv.cpp.i:
+	cd /home/jzz/Design/build && $(MAKE) -f bin/CMakeFiles/Design.dir/build.make bin/CMakeFiles/Design.dir/sv.cpp.i
+.PHONY : sv.cpp.i
+
+sv.s: sv.cpp.s
+
+.PHONY : sv.s
+
+# target to generate assembly for a file
+sv.cpp.s:
+	cd /home/jzz/Design/build && $(MAKE) -f bin/CMakeFiles/Design.dir/build.make bin/CMakeFiles/Design.dir/sv.cpp.s
+.PHONY : sv.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -164,6 +191,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... sv.o"
+	@echo "... sv.i"
+	@echo "... sv.s"
 .PHONY : help
 
 

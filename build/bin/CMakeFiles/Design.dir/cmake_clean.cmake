@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/Design.dir/main.cpp.o"
+  "CMakeFiles/Design.dir/sv.cpp.o"
   "Design"
   "Design.pdb"
 )
