@@ -14,15 +14,15 @@ void Polar_Init();
 //极线校正计算
 void Polar_Compute();
 
-//SGBM视差立体匹配
-void SGBM_Match(int pos, void* userdata);
+//SGBM回调函数
+void SGBM_CallBcck(int pos, void* userdata);
 
-//SGBM参数调整框
-void SGBM_Window();
+//SGBM立体匹配
+void SGBM_Match();
 
 //图像拼接
 void Img_Merge(int gap);
-    
+
 //极线矫正参数
 struct Polar_Option
 {
@@ -67,3 +67,40 @@ static cv::Mat merge;
 
 //视差图
 static cv::Mat disp;
+
+
+//···············································································//
+//SGBM系列参数
+
+// 最小视差值
+static int minDisparity = 0;
+
+//视察搜索范围
+static int numDisparities = 7;
+
+// 匹配块大小，大于1的奇数
+static int blockSize_ = 4; 
+
+// P1, P2控制视差图的光滑度
+// 惩罚系数，一般：P1 = 8 * 通道数*SADWindowSize*SADWindowSize，P2 = 4 * P1
+static int P1 = 500;  
+// p1控制视差平滑度，p2值越大，差异越平滑
+static int P2 = 2000; 
+
+// 左右视差图的最大容许差异（超过将被清零），默认为 - 1，即不执行左右视差检查。
+static int disp12MaxDiff = 1; 
+
+//水平sobel预处理后，映射滤波器大小
+static int preFilterCap = 100;
+
+// 视差唯一性百分比， 视差窗口范围内最低代价是次低代价的(1 + uniquenessRatio / 100)倍时，最低代价对应的视差值才是该像素点的视差，否则该像素点的视差为 0，通常为5~15.
+static int uniquenessRatio = 2; 
+
+// 平滑视差区域的最大尺寸，以考虑其噪声斑点和无效。将其设置为0可禁用斑点过滤。否则，将其设置在50 - 200的范围内。
+static int speckleWindowSize = 200; 
+// 视差变化阈值，每个连接组件内的最大视差变化。如果你做斑点过滤，将参数设置为正值，它将被隐式乘以16.通常，1或2就足够好了
+static int speckleRange = 6; 
+
+//图片通道数
+static int cn = img_left.channels();
+

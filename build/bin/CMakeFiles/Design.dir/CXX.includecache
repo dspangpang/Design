@@ -146,6 +146,10 @@ pcl/point_representation.h
 pcl/io/openni2_grabber.h
 -
 
+/home/jzz/Design/src/sv.cpp
+sv.h
+/home/jzz/Design/src/sv.h
+
 /home/jzz/Design/src/sv.h
 opencv2/opencv.hpp
 -
