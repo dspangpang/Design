@@ -104,9 +104,7 @@ void SGBM_CallBcck(int pos, void* userdata){
 //	int p1 = 8 * cn * blockSize * blockSize;
 	sgbm->setP1(P1);
 	// p1控制视差平滑度，p2值越大，差异越平滑
-	if(P2 < P1){
-		P2 = P1 + 50;
-	}
+	P2 = 4 * P1;
 	sgbm->setP2(P2);
 
 	sgbm->setMode(cv::StereoSGBM::MODE_SGBM);
@@ -114,13 +112,13 @@ void SGBM_CallBcck(int pos, void* userdata){
 	sgbm->compute(img_left, img_right, disp);//输入图像必须为灰度图
 
 	disp.convertTo(disp, CV_32F, 1.0 / 16);
-
-	cv::Mat disp8U = cv::Mat(disp.rows, disp.cols, CV_8UC1);
-
-	disp.convertTo(disp8U,CV_8U,255/(numDisparities*16.));
-
-	cv::imshow("Sgbm_Option", disp8U);
-	cv::imwrite("../../img/disp.jpg", disp8U);
+	// cv::Mat disp8U = cv::Mat(disp.rows, disp.cols, CV_8UC1);
+	
+	insertDepth32f(disp);
+	disp.convertTo(disp,CV_8U,1);	
+	
+	cv::imshow("Sgbm_Option", disp);
+	cv::imwrite("../../img/disp.jpg", disp);
 	
 }
 
@@ -128,16 +126,131 @@ void SGBM_Match(){
 
 	cv::namedWindow("Sgbm_Option", cv::WINDOW_AUTOSIZE);
 		//注意类成员函数变为回调函数的方式
-	cv::createTrackbar("preFilterCap", "Sgbm_Option", &preFilterCap, 100, SGBM_CallBcck);
+	cv::createTrackbar("preFilterCap", "Sgbm_Option", &preFilterCap, 255, SGBM_CallBcck);
 	cv::createTrackbar("blockSize", "Sgbm_Option", &blockSize_, 21, SGBM_CallBcck);
 	cv::createTrackbar("numDisparities", "Sgbm_Option", &numDisparities, 20, SGBM_CallBcck);
-	cv::createTrackbar("speckleWindowSize", "Sgbm_Option", &speckleWindowSize, 200, SGBM_CallBcck);
-	cv::createTrackbar("speckleRange", "Sgbm_Option", &speckleRange, 10, SGBM_CallBcck);
+	cv::createTrackbar("speckleWindowSize", "Sgbm_Option", &speckleWindowSize, 500, SGBM_CallBcck);
+	cv::createTrackbar("speckleRange", "Sgbm_Option", &speckleRange, 50, SGBM_CallBcck);
 	cv::createTrackbar("uniquenessRatio", "Sgbm_Option", &uniquenessRatio, 20, SGBM_CallBcck);
 	cv::createTrackbar("disp12MaxDiff", "Sgbm_Option", &disp12MaxDiff, 21, SGBM_CallBcck);
-	cv::createTrackbar("P1", "Sgbm_Option", &P1, 1000, SGBM_CallBcck);
-	cv::createTrackbar("P2", "Sgbm_Option", &P2, 4000, SGBM_CallBcck);
+	cv::createTrackbar("P1", "Sgbm_Option", &P1, 2000, SGBM_CallBcck);
+
 	SGBM_CallBcck(0, 0);
 		
 }
 
+void insertDepth32f(cv::Mat& depth)
+{
+    const int width = depth.cols;
+    const int height = depth.rows;
+    float* data = (float*)depth.data;
+    cv::Mat integralMap = cv::Mat::zeros(height, width, CV_64F);
+    cv::Mat ptsMap = cv::Mat::zeros(height, width, CV_32S);
+    double* integral = (double*)integralMap.data;
+    int* ptsIntegral = (int*)ptsMap.data;
+    memset(integral, 0, sizeof(double) * width * height);
+    memset(ptsIntegral, 0, sizeof(int) * width * height);
+    for (int i = 0; i < height; ++i)
+    {
+        int id1 = i * width;
+        for (int j = 0; j < width; ++j)
+        {
+            int id2 = id1 + j;
+            if (data[id2] > 1e-3)
+            {
+                integral[id2] = data[id2];
+                ptsIntegral[id2] = 1;
+            }
+        }
+    }
+    // 积分区间
+    for (int i = 0; i < height; ++i)
+    {
+        int id1 = i * width;
+        for (int j = 1; j < width; ++j)
+        {
+            int id2 = id1 + j;
+            integral[id2] += integral[id2 - 1];
+            ptsIntegral[id2] += ptsIntegral[id2 - 1];
+        }
+    }
+    for (int i = 1; i < height; ++i)
+    {
+        int id1 = i * width;
+        for (int j = 0; j < width; ++j)
+        {
+            int id2 = id1 + j;
+            integral[id2] += integral[id2 - width];
+            ptsIntegral[id2] += ptsIntegral[id2 - width];
+        }
+    }
+    int wnd;
+    double dWnd = 2;
+    while (dWnd > 1)
+    {
+        wnd = int(dWnd);
+        dWnd /= 2;
+        for (int i = 0; i < height; ++i)
+        {
+            int id1 = i * width;
+            for (int j = 0; j < width; ++j)
+            {
+                int id2 = id1 + j;
+                int left = j - wnd - 1;
+                int right = j + wnd;
+                int top = i - wnd - 1;
+                int bot = i + wnd;
+                left = std::max(0, left);
+                right = std::min(right, width - 1);
+                top = std::max(0, top);
+                bot = std::min(bot, height - 1);
+                int dx = right - left;
+                int dy = (bot - top) * width;
+                int idLeftTop = top * width + left;
+                int idRightTop = idLeftTop + dx;
+                int idLeftBot = idLeftTop + dy;
+                int idRightBot = idLeftBot + dx;
+                int ptsCnt = ptsIntegral[idRightBot] + ptsIntegral[idLeftTop] - (ptsIntegral[idLeftBot] + ptsIntegral[idRightTop]);
+                double sumGray = integral[idRightBot] + integral[idLeftTop] - (integral[idLeftBot] + integral[idRightTop]);
+                if (ptsCnt <= 0)
+                {
+                    continue;
+                }
+                data[id2] = float(sumGray / ptsCnt);
+            }
+        }
+        int s = wnd / 2 * 2 + 1;
+        if (s > 201)
+        {
+            s = 201;
+        }
+        cv::GaussianBlur(depth, depth, cv::Size(s, s), s, s);
+    }
+}
+
+
+void disp2cl(){
+
+	const double camera_cx = Option1.cameraMatrixL.ptr(0)[2];
+	const double camera_cy = Option1.cameraMatrixL.ptr(1)[2];
+	const double camera_fx = Option1.cameraMatrixL.ptr(0)[0];
+	const double camera_fy = Option1.cameraMatrixL.ptr(1)[1];
+
+	const double baseline = 650;
+
+	depth = cv::Mat(disp.rows, disp.cols, CV_32F);
+
+	for (int row = 0; row < depth.rows; row++)
+    {
+        for (int col = 0; col < depth.cols; col++)
+        {
+            short d = disp.ptr<uchar>(row)[col];
+
+            if (d == 0)
+                continue;
+
+            depth.ptr<float>(row)[col] = camera_fx * baseline / d;
+        }
+    }
+
+}
