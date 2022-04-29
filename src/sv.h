@@ -2,6 +2,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <algorithm>
+#include "pcl_lib.h"
 
 //SGBM变量初始化
 static cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create();
@@ -27,8 +28,11 @@ void Img_Merge(int gap);
 //空洞填充
 void insertDepth32f(cv::Mat& depth);
 
-//视差图转点云图
-void disp2cl();
+//视差图转深度图
+void disp2depth();
+
+//获得点云图
+void getCloud();
 
 //极线矫正参数
 struct Polar_Option
@@ -115,3 +119,6 @@ static int P2 = 4 * 1500;
 //图片通道数
 static int cn = img_left.channels();
 
+//点云存储位置
+
+static pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;

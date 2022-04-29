@@ -114,11 +114,11 @@ void SGBM_CallBcck(int pos, void* userdata){
 	disp.convertTo(disp, CV_32F, 1.0 / 16);
 	// cv::Mat disp8U = cv::Mat(disp.rows, disp.cols, CV_8UC1);
 	
-	insertDepth32f(disp);
-	disp.convertTo(disp,CV_8U,1);	
+	disp.convertTo(disp,CV_8U,1);
+    
 	
 	cv::imshow("Sgbm_Option", disp);
-	cv::imwrite("../../img/disp.jpg", disp);
+	cv::imwrite("../../img/disp.png", disp);
 	
 }
 
@@ -229,16 +229,16 @@ void insertDepth32f(cv::Mat& depth)
 }
 
 
-void disp2cl(){
+void disp2depth(){
 
-	const double camera_cx = Option1.cameraMatrixL.ptr(0)[2];
-	const double camera_cy = Option1.cameraMatrixL.ptr(1)[2];
-	const double camera_fx = Option1.cameraMatrixL.ptr(0)[0];
-	const double camera_fy = Option1.cameraMatrixL.ptr(1)[1];
+	const double camera_cx = 1249.79388;
+	const double camera_cy = 1013.03051;
+	const double camera_fx = 7317.27331;
+	const double camera_fy = 7329.17800;
 
-	const double baseline = 650;
+	const double baseline = 650.0;
 
-	depth = cv::Mat(disp.rows, disp.cols, CV_32F);
+	depth = cv::Mat(disp.rows, disp.cols, CV_16S);
 
 	for (int row = 0; row < depth.rows; row++)
     {
@@ -249,8 +249,59 @@ void disp2cl(){
             if (d == 0)
                 continue;
 
-            depth.ptr<float>(row)[col] = camera_fx * baseline / d;
+            depth.ptr<short>(row)[col] = camera_fx * baseline / d;
         }
     }
+    cv::imshow("depth", depth);
+
+    cv::imwrite("../../img/depth.png", depth);
+    
+}
+
+void getCloud(){
+
+	const double camera_cx = 1249.79388;
+	const double camera_cy = 1013.03051;
+	const double camera_fx = 7317.27331;
+	const double camera_fy = 7329.17800;
+
+    const double camera_factor = 1000;
+
+    cloud.reset(new pcl::PointCloud<pcl::PointXYZ>());
+
+      // 遍历深度图
+    for (int m = 0; m < depth.rows; m++){
+
+        for( int n = 0; n < depth.cols; n++){
+            //获取深度图中(m,n)处的值
+            //cv::Mat的ptr函数会返回指向该图像第m行数据的头指针。然后加上位移n后，这个指针指向的数据就是我们需要读取的数据.
+            ushort d = depth.ptr<ushort>(m)[n];
+            // d 可能没有值，若如此，跳过此点
+            if (d == 0)
+                continue;
+            //d 存在值，则向点云增加一个点
+            pcl::PointXYZ p;
+            
+            // 计算这个点的空间坐标
+            p.z = double(d) /camera_factor;
+            p.x = (n - camera_cx) * p.z / camera_fx;
+            p.y = (m - camera_cy) * p.z / camera_fy;
+            
+            //把p加入到点云中
+            cloud->points.push_back(p); 
+        }
+    }
+
+    cloud->height = 1;
+    cloud->width = cloud->points.size();
+    cloud->is_dense = false;
+    pcl::io::savePCDFile( "../../img/pointcloud.pcd", *cloud);
+
+    pcl::visualization::CloudViewer viewer("viewer");   
+    viewer.showCloud(cloud);
+    while (!viewer.wasStopped())
+    {
+
+    }  
 
 }

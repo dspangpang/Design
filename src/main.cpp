@@ -1,4 +1,3 @@
-#include "pcl_lib.h"
 #include "sv.h"
 #include <iostream>
 
@@ -33,9 +32,11 @@ int main(int argv, char** argc){
     //SGBM视差计算
 
     SGBM_Match();
-    disp2cl();
-    //···············································································//
 
+    //···············································································//
+    //获取点云数据
+    disp2depth();
+    getCloud();
 
     cv::waitKey();
     cv::destroyAllWindows();
