@@ -31,6 +31,9 @@ void insertDepth32f(cv::Mat& depth);
 //视差图转深度图
 void disp2depth();
 
+//视差图转深度图
+void disp2depth_method();
+
 //获得点云图
 void getCloud();
 
@@ -64,6 +67,9 @@ static Polar_Option Option1;
 //左侧图像输入
 static cv::Mat img_left;
 
+//左侧图像输入
+static cv::Mat img_left_color;
+
 //右侧图像输入
 static cv::Mat img_right;
 
@@ -79,8 +85,14 @@ static cv::Mat merge;
 //视差图
 static cv::Mat disp;
 
+//视差图
+static cv::Mat disp8U;
+
 //深度图
 static cv::Mat depth;
+
+//视差图
+static cv::Mat Image3D;
 
 
 //···············································································//
@@ -90,13 +102,13 @@ static cv::Mat depth;
 static int minDisparity = 0;
 
 //水平sobel预处理后，映射滤波器大小
-static int preFilterCap = 230;
+static int preFilterCap = 200;
 
 // 匹配块大小，大于1的奇数
-static int blockSize_ = 4; 
+static int blockSize_ = 14; 
 
 //视察搜索范围
-static int numDisparities = 1;
+static int numDisparities = 12;
 
 // 平滑视差区域的最大尺寸，以考虑其噪声斑点和无效。将其设置为0可禁用斑点过滤。否则，将其设置在50 - 200的范围内。
 static int speckleWindowSize = 200; 
@@ -105,20 +117,20 @@ static int speckleWindowSize = 200;
 static int speckleRange = 5; 
 
 // 视差唯一性百分比， 视差窗口范围内最低代价是次低代价的(1 + uniquenessRatio / 100)倍时，最低代价对应的视差值才是该像素点的视差，否则该像素点的视差为 0，通常为5~15.
-static int uniquenessRatio = 0; 
+static int uniquenessRatio = 5; 
 
 // 左右视差图的最大容许差异（超过将被清零），默认为 - 1，即不执行左右视差检查。
 static int disp12MaxDiff = 1; 
 
 // P1, P2控制视差图的光滑度
 // 惩罚系数，一般：P1 = 8 * 通道数*SADWindowSize*SADWindowSize，P2 = 4 * P1
-static int P1 = 1500;  
+static int P1 = 2000;  
 // p1控制视差平滑度，p2值越大，差异越平滑
-static int P2 = 4 * 1500; 
+static int P2 = 4 * P1 ; 
 
 //图片通道数
 static int cn = img_left.channels();
 
 //点云存储位置
 
-static pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
+static pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;

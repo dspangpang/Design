@@ -2,6 +2,7 @@
 
 int imgRead(std::string path_left, std::string path_right){
 	
+    img_left_color = cv::imread(path_left, cv::IMREAD_UNCHANGED);
 	img_left = cv::imread(path_left, cv::IMREAD_GRAYSCALE);
     img_right = cv::imread(path_right, cv::IMREAD_GRAYSCALE);
 
@@ -111,20 +112,20 @@ void SGBM_CallBcck(int pos, void* userdata){
 
 	sgbm->compute(img_left, img_right, disp);//输入图像必须为灰度图
 
-	disp.convertTo(disp, CV_32F, 1.0 / 16);
-	// cv::Mat disp8U = cv::Mat(disp.rows, disp.cols, CV_8UC1);
-	
-	disp.convertTo(disp,CV_8U,1);
+	disp.convertTo(disp, CV_32F, 1.0 / 16); //低四位是小数部分，去除
+
+	disp8U = cv::Mat(disp.rows, disp.cols, CV_8UC1);
+	disp.convertTo(disp8U, CV_8U, 255/(numDisparities*16.));
     
 	
-	cv::imshow("Sgbm_Option", disp);
-	cv::imwrite("../../img/disp.png", disp);
+	cv::imshow("Sgbm_Option", disp8U);
+	cv::imwrite("../../img/disp.png", disp8U);
 	
 }
 
 void SGBM_Match(){
 
-	cv::namedWindow("Sgbm_Option", cv::WINDOW_AUTOSIZE);
+	cv::namedWindow("Sgbm_Option", cv::WINDOW_FREERATIO);
 		//注意类成员函数变为回调函数的方式
 	cv::createTrackbar("preFilterCap", "Sgbm_Option", &preFilterCap, 255, SGBM_CallBcck);
 	cv::createTrackbar("blockSize", "Sgbm_Option", &blockSize_, 21, SGBM_CallBcck);
@@ -133,7 +134,7 @@ void SGBM_Match(){
 	cv::createTrackbar("speckleRange", "Sgbm_Option", &speckleRange, 50, SGBM_CallBcck);
 	cv::createTrackbar("uniquenessRatio", "Sgbm_Option", &uniquenessRatio, 20, SGBM_CallBcck);
 	cv::createTrackbar("disp12MaxDiff", "Sgbm_Option", &disp12MaxDiff, 21, SGBM_CallBcck);
-	cv::createTrackbar("P1", "Sgbm_Option", &P1, 2000, SGBM_CallBcck);
+	cv::createTrackbar("P1", "Sgbm_Option", &P1, 5000, SGBM_CallBcck);
 
 	SGBM_CallBcck(0, 0);
 		
@@ -231,43 +232,66 @@ void insertDepth32f(cv::Mat& depth)
 
 void disp2depth(){
 
-	const double camera_cx = 1249.79388;
-	const double camera_cy = 1013.03051;
-	const double camera_fx = 7317.27331;
-	const double camera_fy = 7329.17800;
+	const double camera_fx = 1758.23;
 
-	const double baseline = 650.0;
+	const double baseline = 88.39;
 
-	depth = cv::Mat(disp.rows, disp.cols, CV_16S);
+	depth = cv::Mat(img_left.rows, img_left.cols, CV_16UC1);
 
 	for (int row = 0; row < depth.rows; row++)
     {
         for (int col = 0; col < depth.cols; col++)
         {
-            short d = disp.ptr<uchar>(row)[col];
+            ushort d = disp8U.ptr<uchar>(row)[col];
 
             if (d == 0)
                 continue;
 
-            depth.ptr<short>(row)[col] = camera_fx * baseline / d;
+            depth.ptr<ushort>(row)[col] = camera_fx * baseline / d;
         }
     }
+
+    cv::namedWindow("depth", cv::WINDOW_FREERATIO);
+    cv::imshow("depth", depth);
+    cv::imwrite("../../img/depth.png", depth);
+}
+
+
+void disp2depth_method(){
+
+    cv::Mat Qx;
+    Qx = (cv::Mat_<double>(4, 4) << 1., 0., 0., -977.42, 
+                                    0., 1., 0., -552.15, 
+                                    0., 0., 0., 1758.23,
+                                    1., 0., -88.39, 0.);
+    
+    cv::reprojectImageTo3D(disp8U, Image3D , Qx);
+    depth = cv::Mat(img_left.rows, img_left.cols, CV_32F);
+
+	for (int row = 0; row < depth.rows; row++)
+    {
+        for (int col = 0; col < depth.cols; col++)
+        {
+
+            depth.ptr<float>(row)[col] = Image3D.ptr<float>(row)[col * 3 + 2];
+        }
+    }
+
+    cv::namedWindow("depth", cv::WINDOW_FREERATIO);
     cv::imshow("depth", depth);
 
-    cv::imwrite("../../img/depth.png", depth);
-    
 }
 
 void getCloud(){
 
-	const double camera_cx = 1249.79388;
-	const double camera_cy = 1013.03051;
-	const double camera_fx = 7317.27331;
-	const double camera_fy = 7329.17800;
+	const double camera_cx = 977.42;
+	const double camera_cy = 552.15;
+	const double camera_fx = 1758.23;
+	const double camera_fy = 1758.23;
 
-    const double camera_factor = 1000;
+    const double camera_factor = 1000;             //单位换算因子
 
-    cloud.reset(new pcl::PointCloud<pcl::PointXYZ>());
+    cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>());
 
       // 遍历深度图
     for (int m = 0; m < depth.rows; m++){
@@ -280,12 +304,16 @@ void getCloud(){
             if (d == 0)
                 continue;
             //d 存在值，则向点云增加一个点
-            pcl::PointXYZ p;
+            pcl::PointXYZRGB p;
             
             // 计算这个点的空间坐标
-            p.z = double(d) /camera_factor;
-            p.x = (n - camera_cx) * p.z / camera_fx;
-            p.y = (m - camera_cy) * p.z / camera_fy;
+            p.z = Image3D.ptr<float>(m)[n * 3 + 2];
+            p.x = Image3D.ptr<float>(m)[n * 3];
+            p.y = Image3D.ptr<float>(m)[n * 3 + 1];
+
+		    p.b = img_left_color.ptr<uchar>(m)[n * 3];
+		    p.g = img_left_color.ptr<uchar>(m)[n * 3 + 1];
+		    p.r = img_left_color.ptr<uchar>(m)[n * 3 + 2];
             
             //把p加入到点云中
             cloud->points.push_back(p); 

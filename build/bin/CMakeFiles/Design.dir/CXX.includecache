@@ -6,12 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/jzz/Design/src/main.cpp
-sv.h
-/home/jzz/Design/src/sv.h
-iostream
--
-
 /home/jzz/Design/src/pcl_lib.h
 iostream
 -
