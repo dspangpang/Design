@@ -36,6 +36,7 @@ int main(int argv, char** argc){
     //获取点云数据
     disp2depth_method();
     getCloud();
+    //getMesh();
 
     cv::waitKey();
     cv::destroyAllWindows();

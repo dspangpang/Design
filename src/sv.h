@@ -4,6 +4,11 @@
 #include <algorithm>
 #include "pcl_lib.h"
 
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/poisson.h>
+#include <pcl/visualization/pcl_visualizer.h>
+
 //SGBM变量初始化
 static cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create();
 
@@ -36,6 +41,12 @@ void disp2depth_method();
 
 //获得点云图
 void getCloud();
+
+//泊松表面重建
+
+void getMesh();
+
+
 
 //极线矫正参数
 struct Polar_Option
@@ -94,9 +105,17 @@ static cv::Mat depth;
 //视差图
 static cv::Mat Image3D;
 
+//点云存储位置
+static pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb;
+
+static pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
+
+
 
 //···············································································//
 //SGBM系列参数
+
+// 0, 200, 14, 12, 200, 5, 5, 1
 
 // 最小视差值
 static int minDisparity = 0;
@@ -122,15 +141,7 @@ static int uniquenessRatio = 5;
 // 左右视差图的最大容许差异（超过将被清零），默认为 - 1，即不执行左右视差检查。
 static int disp12MaxDiff = 1; 
 
-// P1, P2控制视差图的光滑度
-// 惩罚系数，一般：P1 = 8 * 通道数*SADWindowSize*SADWindowSize，P2 = 4 * P1
-static int P1 = 2000;  
-// p1控制视差平滑度，p2值越大，差异越平滑
-static int P2 = 4 * P1 ; 
 
 //图片通道数
-static int cn = img_left.channels();
+static int cn ;
 
-//点云存储位置
-
-static pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
