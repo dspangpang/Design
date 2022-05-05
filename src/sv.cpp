@@ -239,13 +239,17 @@ void getCloud(){
         }
     }
 
+    cloud_rgb->height = 1;
+    cloud_rgb->width = cloud->points.size();
+    cloud_rgb->is_dense = false;
+
     cloud->height = 1;
     cloud->width = cloud->points.size();
     cloud->is_dense = false;
-    pcl::io::savePCDFile( "../../img/pointcloud.pcd", *cloud);
+    pcl::io::savePCDFile( "../../img/pointcloud.pcd", *cloud_rgb);
 
-    pcl::visualization::CloudViewer viewer1("viewer");   
-    viewer1.showCloud(cloud);
+    pcl::visualization::CloudViewer viewer1("viewer");  
+    viewer1.showCloud(cloud_rgb);
     while (!viewer1.wasStopped()){
 
     }
